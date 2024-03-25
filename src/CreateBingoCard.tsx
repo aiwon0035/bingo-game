@@ -18,12 +18,7 @@ const CreateBingoCard = ({
     const columnNumbers: number[] = [];
     // 縦の配列内の数字が5つになるまでランダムな数字を取得する
     while (columnNumbers.length < 5) {
-      const minNumber = Math.ceil(min);
-      const maxNumber = Math.floor(max);
-
-      const num = Math.floor(
-        Math.random() * (maxNumber - minNumber) + minNumber
-      );
+      const num = Math.floor(Math.random() * (max - min) + min);
       //すでに選ばれていない数字ならcolumnNumbersに入れる
       if (!columnNumbers.includes(num)) {
         columnNumbers.push(num);
@@ -33,28 +28,46 @@ const CreateBingoCard = ({
     return columnNumbers;
   };
 
-  //isDrawingがstartの時だけcardを作る
-  useEffect(() => {
-    if (isDrawing === "start") {
-      const newCard = [];
-      //縦の配列を5回繰り返し、それをcardの形にする
-      for (let i = 0; i < 5; i++) {
-        const array = createCol(i * 15 + 1, i * 15 + 15 + 1);
-        newCard.push(array);
-      }
-
-      //cardの縦横を入れ替える
-      const transposedCard: (string | number)[][] = [];
-      for (let i = 0; i < 5; i++) {
-        const transposedRow = newCard.map((row) => row[i]);
-        transposedCard.push(transposedRow);
-      }
-
-      //真ん中にFREEを入れる
-      transposedCard[2][2] = "FREE";
-
-      setCard(transposedCard);
+  //カードを作る関数
+  const createRandomCard = () => {
+    const newCard = [];
+    //縦の配列を5回繰り返し、それをcardの形にする
+    for (let i = 0; i < 5; i++) {
+      const array = createCol(i * 15 + 1, i * 15 + 16);
+      newCard.push(array);
     }
+
+    //cardの縦横を入れ替える
+    const transposedCard: (string | number)[][] = [];
+    for (let i = 0; i < 5; i++) {
+      const transposedRow = newCard.map((row) => row[i]);
+      transposedCard.push(transposedRow);
+    }
+
+    //真ん中にFREEを入れる
+    transposedCard[2][2] = "FREE";
+
+    return transposedCard;
+  };
+
+  //isDrawingがstartになった時だけcardを作る
+  useEffect(() => {
+    //カードを作成
+    let newCard = createRandomCard();
+    //前のカードを取得する（なければ[]を取得）
+    const previousCard = JSON.parse(
+      localStorage.getItem("previousCard") || "[]"
+    );
+
+    //リロード前後のカードが同じかどうかをチェックする(===だけでは比較できないらしいのでstringifyを使う)
+    while (JSON.stringify(previousCard) === JSON.stringify(newCard)) {
+      //同じならカードを作り直す
+      console.log("同じカードが生成されました。カードを作り直します。");
+      newCard = createRandomCard();
+    }
+    // 同じでなければ現在のカードをローカルストレージに保存
+    localStorage.setItem("previousCard", JSON.stringify(newCard));
+    setCard(newCard);
   }, [isDrawing]);
 
   //テキストの装飾
