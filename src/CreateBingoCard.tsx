@@ -52,22 +52,24 @@ const CreateBingoCard = ({
 
   //isDrawingがstartになった時だけcardを作る
   useEffect(() => {
-    //カードを作成
-    let newCard = createRandomCard();
-    //前のカードを取得する（なければ[]を取得）
-    const previousCard = JSON.parse(
-      localStorage.getItem("previousCard") || "[]"
-    );
+    if (isDrawing === "start") {
+      //カードを作成
+      let newCard = createRandomCard();
+      //前のカードを取得する（なければ[]を取得）
+      const previousCard = JSON.parse(
+        localStorage.getItem("previousCard") || "[]"
+      );
 
-    //リロード前後のカードが同じかどうかをチェックする(===だけでは比較できないらしいのでstringifyを使う)
-    while (JSON.stringify(previousCard) === JSON.stringify(newCard)) {
-      //同じならカードを作り直す
-      console.log("同じカードが生成されました。カードを作り直します。");
-      newCard = createRandomCard();
+      //リロード前後のカードが同じかどうかをチェックする(===だけでは比較できないらしいのでstringifyを使う)
+      while (JSON.stringify(previousCard) === JSON.stringify(newCard)) {
+        //同じならカードを作り直す
+        console.log("同じカードが生成されました。カードを作り直します。");
+        newCard = createRandomCard();
+      }
+      // 同じでなければ現在のカードをローカルストレージに保存
+      localStorage.setItem("previousCard", JSON.stringify(newCard));
+      setCard(newCard);
     }
-    // 同じでなければ現在のカードをローカルストレージに保存
-    localStorage.setItem("previousCard", JSON.stringify(newCard));
-    setCard(newCard);
   }, [isDrawing]);
 
   //テキストの装飾
